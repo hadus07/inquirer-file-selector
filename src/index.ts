@@ -5,6 +5,7 @@ import {
   isDownKey,
   isEnterKey,
   isUpKey,
+  isSpaceKey,
   makeTheme,
   useKeypress,
   useMemo,
@@ -121,6 +122,9 @@ export default createPrompt<string, FileSelectorConfig>((config, done) => {
     } else if (isBackspaceKey(key)) {
       setCurrentDir(path.resolve(currentDir, '..'))
       setActive(bounds.first)
+    } else if (isSpaceKey(key)) {
+      setStatus('done')
+      done(activeItem.path)
     } else if (isEscapeKey(key) && allowCancel) {
       setStatus('canceled')
       done('canceled')
@@ -153,7 +157,7 @@ export default createPrompt<string, FileSelectorConfig>((config, done) => {
     loop: false
   })
 
-  const message = theme.style.message(config.message)
+  const message = theme.style.message(config.message, 'done')
 
   if (status === 'canceled') {
     return `${prefix} ${message} ${theme.style.cancelText(cancelText)}`
@@ -166,8 +170,11 @@ export default createPrompt<string, FileSelectorConfig>((config, done) => {
   const header = theme.style.currentDir(ensureTrailingSlash(currentDir))
   const helpTip = useMemo(() => {
     const helpTipLines = [
-      `${theme.style.key(figures.arrowUp + figures.arrowDown)} navigate, ${theme.style.key('<enter>')} select or open directory`,
-      `${theme.style.key('<backspace>')} go back${allowCancel ? `, ${theme.style.key('<esc>')} cancel` : ''}`
+      `${theme.style.key(figures.arrowUp + figures.arrowDown)} navigate`,
+      `${theme.style.key('<space>')} select file or directory`,
+      `${theme.style.key('<enter>')} select or open directory`,
+      `${theme.style.key('<backspace>')} go back`,
+      `${allowCancel ? `${theme.style.key('<esc>')} cancel` : ''}`
     ]
 
     const helpTipMaxLength = getMaxLength(helpTipLines)
